@@ -11,14 +11,43 @@ import pandas as pd
 import statistics
 import imageio
 import os
-directory = "/Users/katiagim/MobiVirus/"
+import sys
+from configparser import ConfigParser
+
+"""
+=================================
+READ THE PARAMETERS FROM .INI FILE
+=================================
+"""
+
+# Specify the directory and file name that contains the parameters
+directory = './'
+file_name = 'parameters.ini'
+file_path = os.path.join(directory, file_name)
+
+# Check if the file exists
+if not os.path.exists(file_path):
+    print(f"Error: {file_name} must be in the current directory.")
+    sys.exit("Exiting the program.")
+
+# File exists, proceed with parsing
+config = ConfigParser()
+config.read(file_path)
+
+
+"""
+-----------------------------------------------
+Read directory from the Initial_Parameters section
+-----------------------------------------------
+"""
+directory = config.get('Directories', 'directory').strip('"')                 # Directory where the scripts exist
+
 
 """
 ===================================
 BUILDING THE DATASET OF INDIVIDUALS 
 ===================================
 """
-
 
 ''' 
 --------------------

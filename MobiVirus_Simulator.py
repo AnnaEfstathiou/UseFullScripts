@@ -16,30 +16,78 @@ import random
 import pandas as pd
 import time
 import os
+import sys
+from datetime import datetime
 from configparser import ConfigParser
-from myfunctions import coords_func, label, genome, mutation, infectivity, probs, movement, ini_distm, new_dist, ind_probi, plot_map, create_gif, sample_data, do_plots, save_data
+
+initial=time.time()
+func_time = time.time()-initial
 
 """
-========================
-DIRECTORY INITIALIZATION 
-========================
-"""
-# Put the directory where the parameters.ini is and where the products of the simulator will be saved
-# Make the directories where the output will be saved
+===================
+PARSE THE .INI FILE
+===================
+""" 
 
-directory = "/Users/katiagim/MobiVirus/"
-samples = directory + 'samples'
-plots = directory +'plots'
-genomes =  directory + 'genomes'
-os.mkdir(samples)
-os.mkdir(plots)
-os.mkdir(genomes)
+# Specify the directory and file name that contains the parameters
+directory = './'
+file_name = 'parameters.ini'
+file_path = os.path.join(directory, file_name)
+
+# Check if the file exists
+if not os.path.exists(file_path):
+    print(f"Error: {file_name} must be in the current directory.")
+    sys.exit("Exiting the program.")
+
+# File exists, proceed with parsing
+config = ConfigParser()
+config.read(file_path)
 
 #%%
+"""
+========================================
+IMPORTING THE NECESSARY PYTHON FUNCTIONS
+========================================
+"""
+
+from myfunctions import coords_func, label, genome, mutation, infectivity, probs, movement, ini_distm, new_dist, ind_probi, plot_map, create_gif, sample_data, do_plots, save_data
+
+# coords_func
+# label
+# genome
+# mutation
+# infectivity
+# probs
+# movement
+# ini_distm
+# new_dist
+# ind_probi
+# plot_map
+# create_gif
+# sample_data
+# do_plots
+# save_data
+
+#%%
+
+
 """ 
 ========================
 PARAMETER INITIALIZATION
 ========================
+"""
+
+"""
+-----------------------------------------------
+Read directory from the Initial_Parameters section
+-----------------------------------------------
+"""
+directory = config.get('Directories', 'directory').strip('"')       # Directory where the scripts exist 
+
+"""
+-----------------------------------------------
+Read values from the Initial_Parameters section
+-----------------------------------------------
 coords_2 = The characteristics of the individuals, meaning coordinates, labels, probabilities of movement/infection
 g = genome of the individuals, with the shape of a matrix where each line is each individuals' genome, in the form of an array
 r_tot = total mutation rate 
@@ -59,26 +107,8 @@ The columns in Coords_(2 or t)
 # 6 = susceptibility
 ------------------------------
 """
-
-initial=time.time()
-func_time = time.time()-initial
-"""
-=================================
-READ THE PARAMETERS FROM .INI FILE
-=================================
-""" 
-# Instantiate
-config = ConfigParser()
-# Parse existing file
-config.read(directory+'parameters.ini')
-
-"""
------------------------------------------------
-Read values from the Initial_Parameters section
------------------------------------------------
-"""
 r_m = config.getfloat('Initial_Parameters', 'r_m')                  # Mutation rate for each position in genome
-n_i = config.getint('Initial_Parameters', 'n_i')                       # Important genome positions for the ss mutation
+n_i = config.getint('Initial_Parameters', 'n_i')                    # Important genome positions for the ss mutation
 n = config.getint('Initial_Parameters', 'n')                        # Number of individuals in the simulation
 l = config.getint('Initial_Parameters', 'l')                        # Length of genome
 bound_l = config.getfloat('Initial_Parameters', 'bound_l')          # Lower bound for the plot
@@ -98,6 +128,32 @@ rim = config.getfloat('Initial_Parameters', 'rim')                  # Relative i
 sample_times = config.getint('Initial_Parameters', 'sample_times')  # Generations where we take samples of our simulation's output
 
 """
+=================================
+RESULTS' DIRECTORY INITIALIZATION 
+=================================
+"""
+# Put the directory where the parameters.ini is and where the products of the simulator will be saved
+# Make the directories where the output will be saved
+
+# Append current timestamp to subdirectory names
+timestamp = datetime.now().strftime("%d_%m_%Y_(%H:%M)")
+results_directory = directory + f'results_{timestamp}/'
+
+samples = results_directory + 'samples'
+plots = results_directory +'plots'
+genomes =  results_directory + 'genomes'
+
+if not os.path.exists(results_directory):
+    os.mkdir(results_directory)
+    os.mkdir(samples)
+    os.mkdir(plots)
+    os.mkdir(genomes)
+else:
+    print(f"The directory {results_directory} already exists")
+
+#%%
+
+"""
 =======================================================
 CREATING A DATA TABLE WITH THE INFO FOR EACH INDIVIDUAL
 =======================================================
@@ -115,7 +171,7 @@ for i in range(n):
     mut[i] = np.where(probi[i]==ri_s, 2, mut[i])                                # For those with Super Strain, they are labeled as mutation 2
     mut[i] = np.where(probi[i]==ri_n, 1, mut[i])                                # For those with Normal Strain, they are labeled as mutation 1
     g.iloc[i] = np.where(coords_2[:,2][i]==1, np.zeros((1,l)), g.iloc[i])       # For the infected individuals, there is a row in g with the genome that they carry
-    g.iloc[i][0] = np.where(mut[i]==2, 1, g.iloc[i][0])                         # For the infected with mutation 2 (Super Strain), they have the value 1 in the first position of their genome
+    g.loc[i,0] = np.where(mut[i]==2, 1, g.loc[i,0])                         # For the infected with mutation 2 (Super Strain), they have the value 1 in the first position of their genome
     sus[i] = np.where(coords_2[:,2][i]==1, 0, sus[i])                           # For the healthy individuals, they have a Susceptibility to the virus
 
 coords_2 = np.concatenate([coords_2, probm, np.column_stack(probi).T, np.column_stack(mut).T, np.column_stack(sus).T], axis=1) # Gather all the information in the final array table of info
@@ -180,7 +236,9 @@ RUNNING THE SIMULATION
 
 # Run the simulation until everyone becomes uninfected 
 
-while sum(coords_t[:,2])!=0: 
+#while sum(coords_t[:,2])!=0: 
+# Run the simulation for 10 events
+while tt <= 10:
     
     # Optional: Print some plots during the run
     
