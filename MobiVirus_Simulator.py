@@ -50,23 +50,7 @@ IMPORTING THE NECESSARY PYTHON FUNCTIONS
 ========================================
 """
 
-from myfunctions import coords_func, label, genome, mutation, infectivity, probs, movement, ini_distm, new_dist, ind_probi, plot_map, create_gif, sample_data, do_plots, save_data
-
-# coords_func
-# label
-# genome
-# mutation
-# infectivity
-# probs
-# movement
-# ini_distm
-# new_dist
-# ind_probi
-# plot_map
-# create_gif
-# sample_data
-# do_plots
-# save_data
+from mobifunctions import coords_func, label, genome, mutation, infectivity, probs, movement, ini_distm, new_dist, ind_probi, plot_map, sample_data, do_plots, save_data
 
 #%%
 
@@ -82,7 +66,7 @@ PARAMETER INITIALIZATION
 Read directory from the Initial_Parameters section
 -----------------------------------------------
 """
-directory = config.get('Directories', 'directory').strip('"')       # Directory where the scripts exist 
+directory = config.get('Directory', 'directory').strip('"')       # Directory where the scripts exist 
 
 """
 -----------------------------------------------
@@ -171,7 +155,7 @@ for i in range(n):
     mut[i] = np.where(probi[i]==ri_s, 2, mut[i])                                # For those with Super Strain, they are labeled as mutation 2
     mut[i] = np.where(probi[i]==ri_n, 1, mut[i])                                # For those with Normal Strain, they are labeled as mutation 1
     g.iloc[i] = np.where(coords_2[:,2][i]==1, np.zeros((1,l)), g.iloc[i])       # For the infected individuals, there is a row in g with the genome that they carry
-    g.loc[i,0] = np.where(mut[i]==2, 1, g.loc[i,0])                         # For the infected with mutation 2 (Super Strain), they have the value 1 in the first position of their genome
+    g.loc[i,0] = np.where(mut[i]==2, 1, g.loc[i,0])                             # For the infected with mutation 2 (Super Strain), they have the value 1 in the first position of their genome
     sus[i] = np.where(coords_2[:,2][i]==1, 0, sus[i])                           # For the healthy individuals, they have a Susceptibility to the virus
 
 coords_2 = np.concatenate([coords_2, probm, np.column_stack(probi).T, np.column_stack(mut).T, np.column_stack(sus).T], axis=1) # Gather all the information in the final array table of info
@@ -238,7 +222,7 @@ RUNNING THE SIMULATION
 
 #while sum(coords_t[:,2])!=0: 
 # Run the simulation for 10 events
-while tt <= 10:
+while tt <= 5:
     
     # Optional: Print some plots during the run
     
@@ -324,6 +308,7 @@ while tt <= 10:
         
         t_s = t_ss[tt-1] # t_s is the time when an event will happen
         t_ss.pop(-1)
+        
         #t_ss[tt] = t_s # Keep the times of events in a list
         continue
     
@@ -377,7 +362,8 @@ while tt <= 10:
             
             ## Calculate the new position (in coordinates) for the selected individual ##
             coords_f = movement(coords_t, bound_l, bound_h, c, std_x, std_y, rim)
-            
+            print(f"The coords_f is: {coords_f}")
+
             ## Calculkate the new distance matrix now with the updated position of the selected individual ##
             df_f = new_dist(coords_t, coords_f, df_i, c)
             
@@ -428,14 +414,14 @@ while tt <= 10:
         ---------
         """
         
-        ## Calculate the probability of the selected individual to infect each other individualm depending on the distance between them ##
+        ## Calculate the probability of the selected individual to infect each other individual depending on the distance between them ##
         ipi = ind_probi(df_i, c) 
         
         ## Get the number of infected individuals before the new infection process ##
         ib = np.sum(coords_t[:,2])
         
         ## Go through all the individuals (indexing them with j) and find those who: 1. Have a non-zero probability to get infected due to their distance ##
-        ##                                                                           2. Are not already infected                                       ## 
+        ##                                                                           2. Are not already infected                                          ## 
         for j in range(n): 
             if ipi[j] !=0 and coords_t[j,2] == 0: 
                 
