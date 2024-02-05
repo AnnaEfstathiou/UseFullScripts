@@ -11,7 +11,6 @@ import random
 import matplotlib.pyplot as plt
 import pandas as pd
 import statistics
-import imageio.v2 as imageio
 import os
 import sys
 from configparser import ConfigParser
